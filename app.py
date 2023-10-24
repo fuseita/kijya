@@ -48,17 +48,17 @@ def upload_file_handler():
     if 'path' not in request.form \
         or 'password' not in request.form \
             or 'file' not in request.files:
-        return "bad request", 400
+        return "wrong request", 400
 
     if request.form.get('password') != app.config["SECRET_KEY"]:
-        return "unauthorized", 401
+        return "wrong password", 401
 
     file = request.files['file']
     if not file or file.filename == '':
-        return "bad request", 400
+        return "no file in request", 400
 
     if file_extention(file.filename) != 'zip':
-        return "bad request", 400
+        return "file is not a zip", 400
 
     zip_filename = secure_filename(file.filename)
     zip_filepath = join(app.config['UPLOAD_FOLDER'], zip_filename)
