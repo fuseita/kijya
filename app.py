@@ -7,6 +7,8 @@ from zipfile import ZipFile
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 
+from typing import Union
+
 app = Flask(__name__)
 
 config_path = join(getcwd(), "config.yaml")
@@ -16,7 +18,7 @@ if not exists(app.config["UPLOAD_FOLDER"]):
     mkdir(app.config["UPLOAD_FOLDER"])
 
 
-def file_extention(filename) -> str | None:
+def file_extention(filename) -> Union[str, None]:
     if '.' not in filename:
         return None
     return filename.rsplit('.', 1)[1].lower()
