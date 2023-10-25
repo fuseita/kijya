@@ -4,7 +4,7 @@ from os.path import join, exists
 from yaml import full_load
 from zipfile import ZipFile
 
-from flask import Flask, request
+from flask import Flask, request, make_response
 from werkzeug.utils import secure_filename
 
 from typing import Union
@@ -25,28 +25,51 @@ def file_extention(filename) -> Union[str, None]:
 
 
 @app.route('/', methods=['GET'])
-def upload_file_page():
+def index_page():
     return '''
         <!doctype html>
         <html>
             <head>
-                <title>Upload zip file</title>
+                <title>Kijya</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
             </head>
             <body>
-                <h1>Upload zip file</h1>
-                <form method="post" enctype="multipart/form-data">
-                    <input type="text" name="path" required placeholder="Path" />
-                    <input type="text" name="password" required placeholder="Password" />
-                    <input type="file" name="file" required accept=".zip" />
-                    <input type="submit" value="Upload" />
-                </form>
+                <div class="px-4 py-5 my-5 text-center">
+                    <h1 class="display-5 text-body-emphasis">Kijya</h1>
+                    <p class="lead mb-4">利用 ZIP壓縮檔 升級伺服器程式</p>
+                    <form method="post" enctype="multipart/form-data" class="mx-auto p-4 p-md-5 border rounded-3 bg-body-tertiary">
+                        <div class="form-floating mb-3">
+                            <input type="text" name="path" required id="input-path" placeholder="Path" class="form-control" />
+                            <label for="input-path">Path</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" name="password" required id="input-password" placeholder="Password" class="form-control" />
+                            <label for="input-password">Password</label>
+                        </div>
+                        <div class="mb-3">
+                            <input type="file" name="file" required accept=".zip" class="form-control" />
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="submit" value="Upload" class="w-100 btn btn-lg btn-primary" />
+                        </div>
+                    </form>
+                </div>
             </body>
         </html>
     '''
 
 
+@app.route('/robots.txt', methods=['GET'])
+def robots_txt():
+    text = "User-agent: *\nDisallow: /"
+    response = make_response(text, 200)
+    response.mimetype = "text/plain"
+    return response
+
+
 @app.route('/', methods=['POST'])
-def upload_file_handler():
+def upload_zip():
     if 'path' not in request.form \
         or 'password' not in request.form \
             or 'file' not in request.files:
