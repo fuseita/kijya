@@ -99,5 +99,6 @@ def upload_zip():
     if 'cmd' in request.form:
         command = request.form.get("cmd")
         system(command)
-
-    return "received", 201
+        return "received and loaded", 200
+    else:
+        return "received", 200
