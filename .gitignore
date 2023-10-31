@@ -114,9 +114,11 @@ celerybeat.pid
 .venv
 env/
 venv/
+runtime/
 ENV/
 env.bak/
 venv.bak/
+runtime.bak/
 config.yaml
 tmp/
 
