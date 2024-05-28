@@ -47,6 +47,10 @@ def index_page():
                             <input type="text" name="password" required id="input-password" placeholder="Password" class="form-control" />
                             <label for="input-password">Password</label>
                         </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" name="cmd" id="input-cmd" placeholder="Command" class="form-control" />
+                            <label for="input-cmd">Command</label>
+                        </div>
                         <div class="mb-3">
                             <input type="file" name="file" required accept=".zip" class="form-control" />
                         </div>
