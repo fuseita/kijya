@@ -76,7 +76,8 @@ def robots_txt():
 def upload_zip():
     if 'path' not in request.form \
         or 'password' not in request.form \
-            or 'file' not in request.files:
+            or 'cmd' not in request.form \
+                or 'file' not in request.files:
         return "wrong request", 400
 
     if request.form.get('password') != app.config["SECRET_KEY"]:
@@ -100,8 +101,8 @@ def upload_zip():
             zf.extract(name, extract_base_path)
     remove(zip_filepath)
 
-    if 'cmd' in request.form:
-        command = request.form.get("cmd")
+    command = request.form.get("cmd")
+    if command:
         system(command)
         return "received and loaded", 200
     else:
