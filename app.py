@@ -18,6 +18,10 @@ with open(config_path, "r") as config_file:
     config = safe_load(config_file)
 
 
+def is_secret_key(secret_key: str) -> bool:
+    return len(secret_key) == 60
+
+
 def safe_compare(a: str, b: str) -> bool:
     a = a.encode("utf-8")
     b = b.encode("utf-8")
@@ -82,7 +86,9 @@ async def upload_zip(
     cmd: Optional[str] = Form(None),
     file: UploadFile = Form(...),
 ):
-    if not (config["SECRET_KEY"] and safe_compare(password, config["SECRET_KEY"])):
+    secret_key = config.get("SECRET_KEY")
+    is_format_pass = is_secret_key(secret_key) and is_secret_key(password)
+    if not (is_format_pass and safe_compare(secret_key, password)):
         raise HTTPException(status_code=401, detail="wrong password")
 
     if file_extension(file.filename) != "zip":
