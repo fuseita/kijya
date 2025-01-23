@@ -47,5 +47,5 @@ stopwaitsecs=0
 autostart=true
 autorestart=true
 stdout_logfile=/server/kijya/stdout.log
-stderr_logfile=/server/kijya/error.log
+stderr_logfile=/server/kijya/stderr.log
 ```
