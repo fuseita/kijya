@@ -18,14 +18,16 @@ jobs:
   run-kijya:
     runs-on: ubuntu-latest
     steps:
-      - name: 載入 Git 檔案 🛎️
-        uses: actions/checkout@v2.3.1
+      - name: 從 Git 下載資料 🛎️
+        uses: actions/checkout@v4
           
-      - name: 使用 Zip 📤
-        uses: montudor/action-zip@v1
+      - name: 刪掉沒用到的資料 🔥
+        run: rm -rf ${{ vars.KIJYA_REMOVE }}
 
-      - name: 製作 Zip 📥
-        run: zip -qq -r build.zip .
+      - name: 壓縮 Zip 📥
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r build.zip .
 
       - name: 上傳 Zip 🚀
         uses: JantHsueh/upload-file-action@master
