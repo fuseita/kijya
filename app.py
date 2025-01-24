@@ -89,10 +89,10 @@ async def upload_zip(
     secret_key = config.get("SECRET_KEY")
     is_format_pass = is_secret_key(secret_key) and is_secret_key(password)
     if not (is_format_pass and safe_compare(secret_key, password)):
-        raise HTTPException(status_code=401, detail="wrong password")
+        raise HTTPException(401, "wrong password")
 
     if file_extension(file.filename) != "zip":
-        raise HTTPException(status_code=400, detail="file is not a zip")
+        raise HTTPException(400, "file is not a zip")
 
     zip_filepath = file.filename
     with open(zip_filepath, "wb") as f:
@@ -104,8 +104,8 @@ async def upload_zip(
 
     remove(zip_filepath)
 
-    if cmd:
-        system(cmd)
-        return {"message": "received and loaded"}
-    else:
+    if not cmd:
         return {"message": "received"}
+
+    system(cmd)
+    return {"message": "received and loaded"}
