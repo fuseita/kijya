@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-RUn apt-get install -y docker.io
+RUn apt update && apt-get install -y docker.io
 RUN pip install -r requirements.txt
 
 COPY . /app
