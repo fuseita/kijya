@@ -1,10 +1,11 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-RUn apt update && apt-get install -y docker.io
+COPY . /app
+
+RUN apt update && apt-get install -y docker.io && apt clean
 RUN pip install -r requirements.txt
 
-COPY . /app
 EXPOSE 8000
 
 CMD ["fastapi", "run", "main.py"]
