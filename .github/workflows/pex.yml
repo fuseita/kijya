@@ -14,8 +14,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.10, 3.11, 3.12, 3.13]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       # 取得專案程式碼
@@ -37,7 +37,7 @@ jobs:
       # 建構 PEX
       - name: 建構 PEX
         run: |
-          python -m pex -r requirements.txt -D . -m app.main -o ${{ env.PEX_OUTPUT }}
+          python -m pex -r requirements.txt -D . -m app.main -o "${{ env.PEX_OUTPUT }}"
 
       # 上傳 PEX 作為 artifact
       - name: 上傳 PEX artifact
