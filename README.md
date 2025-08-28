@@ -54,6 +54,8 @@ stderr_logfile=/server/kijya/stderr.log
 
 我們有個魔法可以生成一個 `.pex` 檔案，可以讓你把 Kijya 帶來帶去。~~反正就是四處亂跑~~
 
+記得 Python 版本，跑的要跟生成的是同一個 Python 版本！~~不然你可能就是下一個走走受害者~~
+
 ```bash
 pip install -U pex
 pex -r requirements.txt -D . -m app -o kijya.pex
