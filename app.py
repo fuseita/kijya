@@ -6,8 +6,8 @@ from hmac import compare_digest
 from yaml import safe_load
 from zipfile import ZipFile
 
-from fastapi import FastAPI, Form, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi import FastAPI, Form, Request, UploadFile, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 from typing import Optional
 
@@ -34,9 +34,21 @@ def file_extension(filename: str) -> Optional[str]:
     return filename.rsplit(".", 1)[1].lower()
 
 
+@app.middleware("http")
+async def check_ip_access(request: Request, call_next):
+    client_ip = request.client.host
+    allowed_ips = config.get("ALLOWED_IPS", ["*"])
+    if "*" not in allowed_ips and client_ip not in allowed_ips:
+        return JSONResponse(
+            content={"message": f"Access denied for IP: {client_ip}"},
+            status_code=403,
+        )
+    return await call_next(request)
+
+
 @app.get("/", response_class=HTMLResponse)
 def index_page():
-    return '''
+    return """
         <!doctype html>
         <html>
             <head>
@@ -71,7 +83,7 @@ def index_page():
                 </div>
             </body>
         </html>
-    '''
+    """
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
@@ -105,7 +117,13 @@ async def upload_zip(
     remove(zip_filepath)
 
     if not cmd:
-        return {"message": "received"}
+        return JSONResponse(
+            content={"message": "received"},
+            status_code=200,
+        )
 
     system(cmd)
-    return {"message": "received and loaded"}
+    return JSONResponse(
+        content={"message": "received and command executed"},
+        status_code=200,
+    )

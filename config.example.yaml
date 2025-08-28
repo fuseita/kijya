@@ -1,1 +1,2 @@
 SECRET_KEY: "SECRET_KEY" # python password.py
+ALLOWED_IPS: ["*"] # whitelist IPs, use ["*"] to allow all, empty list to deny all
