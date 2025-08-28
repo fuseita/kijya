@@ -41,6 +41,16 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.pyc
+*.pyd
+*.pyz
+*.pex
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

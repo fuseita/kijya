@@ -127,3 +127,11 @@ async def upload_zip(
         content={"message": "received and command executed"},
         status_code=200,
     )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    bind_host = config.get("BIND_HOST", "0.0.0.0")
+    bind_port = config.get("BIND_PORT", 8000)
+    uvicorn.run(app, host=bind_host, port=bind_port)

@@ -51,3 +51,10 @@ autorestart=true
 stdout_logfile=/server/kijya/stdout.log
 stderr_logfile=/server/kijya/stderr.log
 ```
+
+我們有個魔法可以生成一個 `.pex` 檔案，可以讓你把 Kijya 帶來帶去。~~反正就是四處亂跑~~
+
+```bash
+pip install -U pex
+pex -r requirements.txt -D . -m app -o kijya.pex
+```
