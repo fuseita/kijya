@@ -41,7 +41,7 @@ jobs:
 
       # 上傳 PEX 作為 artifact
       - name: 上傳 PEX artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kijya-pex-${{ matrix.os }}-py${{ matrix.python-version }}
           path: ${{ env.PEX_OUTPUT }}
