@@ -117,10 +117,10 @@ async def upload_zip(
         logger.warning(f"Invalid file type: {file.filename}")
         raise HTTPException(400, "file is not a zip")
 
-    zip_filepath = f"zip_{uuid4()}_{file.filename}"
+    zip_filepath = f"j{uuid4()}.zip"
     with open(zip_filepath, "wb") as f:
         f.write(await file.read())
-    logger.info(f"File saved: {zip_filepath}")
+    logger.info(f"File saved: {file.filename} as {zip_filepath}")
 
     untrust_zip = config.get("UNTRUST_ZIP", False)
     with ZipFile(zip_filepath, mode="r") as zf:
