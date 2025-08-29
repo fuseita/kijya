@@ -37,7 +37,7 @@ jobs:
       # 建構 PEX
       - name: 建構 PEX
         run: |
-          python -m pex -r requirements.txt -D . -m app.main -o "${{ env.PEX_OUTPUT }}"
+          python -m pex -r requirements.txt -D . -m app -o "${{ env.PEX_OUTPUT }}"
 
       # 上傳 PEX 作為 artifact
       - name: 上傳 PEX artifact
