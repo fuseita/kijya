@@ -2,7 +2,9 @@ from os import getcwd, remove, system
 from os.path import join
 
 from pathlib import Path
-from logging import getLogger, Formatter, StreamHandler
+from uuid import uuid4
+
+from logging import getLogger
 from hmac import compare_digest
 
 from yaml import safe_load
@@ -115,7 +117,7 @@ async def upload_zip(
         logger.warning(f"Invalid file type: {file.filename}")
         raise HTTPException(400, "file is not a zip")
 
-    zip_filepath = file.filename
+    zip_filepath = f"zip_{uuid4()}_{file.filename}"
     with open(zip_filepath, "wb") as f:
         f.write(await file.read())
     logger.info(f"File saved: {zip_filepath}")
