@@ -1,6 +1,7 @@
 from os import getcwd, remove, system
 from os.path import join
 
+from pathlib import Path
 from logging import getLogger, Formatter, StreamHandler
 from hmac import compare_digest
 
@@ -124,8 +125,17 @@ async def upload_zip(
         f.write(await file.read())
     logger.info(f"File saved: {zip_filepath}")
 
+    untrust_zip = config.get("UNTRUST_ZIP", False)
     with ZipFile(zip_filepath, mode="r") as zf:
         for name in zf.namelist():
+            member_path = Path(name)
+
+            if untrust_zip and (member_path.is_absolute() or ".." in member_path.parts):
+                logger.warning(f"Unsafe path detected in zip: {name}")
+                remove(zip_filepath)
+                logger.info(f"Removed temporary file: {zip_filepath}")
+                raise HTTPException(400, f"Unsafe path detected in zip: {name}")
+
             zf.extract(name, path)
             logger.info(f"Extracted: {name} to {path}")
 
