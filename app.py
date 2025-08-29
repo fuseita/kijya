@@ -1,6 +1,8 @@
 from os import getcwd, remove, system
 from os.path import join
 
+from re import fullmatch
+
 from pathlib import Path
 from uuid import uuid4
 
@@ -41,6 +43,14 @@ def file_extension(filename: str) -> Optional[str]:
     return filename.rsplit(".", 1)[1].lower()
 
 
+def is_cmd_allowed(cmd: str) -> bool:
+    allowed_cmds = config.get("ALLOWED_CMDS", ["^.+$"])
+    for pattern in allowed_cmds:
+        if fullmatch(pattern, cmd):
+            return True
+    return False
+
+
 @app.middleware("http")
 async def check_ip_access(request: Request, call_next):
     client_ip = request.client.host
@@ -78,6 +88,10 @@ def index_page():
                             <label for="input-password">Password</label>
                         </div>
                         <div class="form-floating mb-3">
+                            <input type="text" name="precmd" id="input-precmd" placeholder="Pre-Command" class="form-control" />
+                            <label for="input-cmd">Pre-Command</label>
+                        </div>
+                        <div class="form-floating mb-3">
                             <input type="text" name="cmd" id="input-cmd" placeholder="Command" class="form-control" />
                             <label for="input-cmd">Command</label>
                         </div>
@@ -99,60 +113,85 @@ def robots_txt():
     return "User-agent: *\nDisallow: /"
 
 
-@app.post("/")
-async def upload_zip(
-    path: str = Form(...),
-    password: str = Form(...),
-    cmd: Optional[str] = Form(None),
-    file: UploadFile = Form(...),
-):
-    logger.info(f"Upload received for path: {path}")
+def verify_password(input_password: str) -> None:
     secret_key = config.get("SECRET_KEY")
-    is_format_pass = is_secret_key(secret_key) and is_secret_key(password)
-    if not (is_format_pass and safe_compare(secret_key, password)):
+    is_format_pass = is_secret_key(secret_key) and is_secret_key(input_password)
+    if not (is_format_pass and safe_compare(secret_key, input_password)):
         logger.warning("Wrong password attempt")
         raise HTTPException(401, "wrong password")
 
+
+def validate_file(file: UploadFile) -> None:
     if file_extension(file.filename) != "zip":
         logger.warning(f"Invalid file type: {file.filename}")
         raise HTTPException(400, "file is not a zip")
 
+
+async def save_upload(file: UploadFile) -> str:
     zip_filepath = f"j{uuid4()}.zip"
     with open(zip_filepath, "wb") as f:
         f.write(await file.read())
     logger.info(f"File saved: {file.filename} as {zip_filepath}")
+    return zip_filepath
 
+
+def extract_zip(zip_filepath: str, target_path: str) -> None:
     untrust_zip = config.get("UNTRUST_ZIP", False)
     with ZipFile(zip_filepath, mode="r") as zf:
         for name in zf.namelist():
             member_path = Path(name)
-
             if untrust_zip and (member_path.is_absolute() or ".." in member_path.parts):
                 logger.warning(f"Unsafe path detected in zip: {name}")
                 remove(zip_filepath)
                 logger.info(f"Removed temporary file: {zip_filepath}")
                 raise HTTPException(400, f"Unsafe path detected in zip: {name}")
-
-            zf.extract(name, path)
-            logger.info(f"Extracted: {name} to {path}")
+            zf.extract(name, target_path)
+            logger.info(f"Extracted: {name} to {target_path}")
 
     remove(zip_filepath)
     logger.info(f"Removed temporary file: {zip_filepath}")
 
+
+def execute_cmd(cmd: str) -> None:
     if not cmd:
         logger.info("No command to execute")
-        return JSONResponse(
-            content={"message": "received"},
-            status_code=200,
-        )
-
+        return
+    if not is_cmd_allowed(cmd):
+        logger.warning(f"Command not allowed: {cmd}")
+        raise HTTPException(400, f"Command not allowed: {cmd}")
     logger.info(f"Executing command: {cmd}")
     system(cmd)
     logger.info("Command executed")
-    return JSONResponse(
-        content={"message": "received and command executed"},
-        status_code=200,
-    )
+
+
+@app.post("/")
+async def upload_zip(
+    path: str = Form(...),
+    password: str = Form(...),
+    precmd: Optional[str] = Form(None),
+    cmd: Optional[str] = Form(None),
+    file: UploadFile = Form(...),
+):
+    # logging
+    logger.info(f"Upload received for path: {path}")
+
+    # verify/validate
+    verify_password(password)
+    validate_file(file)
+
+    # execute precmd
+    execute_cmd(precmd)
+
+    # handle zip file
+    zip_filepath = await save_upload(file)
+    extract_zip(zip_filepath, path)
+
+    # execute cmd
+    execute_cmd(cmd)
+
+    # return
+    msg = "received and command executed" if cmd else "received"
+    return JSONResponse(content={"message": msg}, status_code=200)
 
 
 if __name__ == "__main__":

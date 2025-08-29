@@ -33,7 +33,7 @@ jobs:
         uses: JantHsueh/upload-file-action@master
         with:
           url: ${{ vars.KIJYA_URL }}
-          forms: '{"password":"${{ secrets.KIJYA_PASS }}","path":"${{ vars.KIJYA_PATH }}","cmd":"${{ vars.KIJYA_CMD }}"}'
+          forms: '{"password":"${{ secrets.KIJYA_PASS }}","path":"${{ vars.KIJYA_PATH }}","precmd":"${{ vars.KIJYA_PRECMD }},"cmd":"${{ vars.KIJYA_CMD }}"}'
           fileForms: '{"file":"build.zip"}'
 ```
 
