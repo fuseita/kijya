@@ -19,13 +19,8 @@ config_path = join(getcwd(), "config.yaml")
 with open(config_path, "r") as config_file:
     config = safe_load(config_file)
 
-stream_handler = StreamHandler()
-stream_formatter = Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-stream_handler.setFormatter(stream_formatter)
-
 logger = getLogger("kijya")
 logger.setLevel(config.get("LOG_LEVEL", "INFO"))
-logger.addHandler(stream_handler)
 
 
 def is_secret_key(secret_key: str) -> bool:
