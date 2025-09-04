@@ -121,18 +121,19 @@ def verify_password(input_password: str) -> None:
         raise HTTPException(401, "wrong password")
 
 
-def validate_file(file: UploadFile) -> None:
-    if file_extension(file.filename) != "zip":
+def validate_file(file: UploadFile, raw: bool) -> None:
+    if (not raw) and file_extension(file.filename) != "zip":
         logger.warning(f"Invalid file type: {file.filename}")
         raise HTTPException(400, "file is not a zip")
 
 
-async def save_upload(file: UploadFile) -> str:
-    zip_filepath = f"j{uuid4()}.zip"
-    with open(zip_filepath, "wb") as f:
+async def save_upload(file: UploadFile, target_path: str, raw: bool) -> str:
+    filepath = file.filename if raw else f"j{uuid4()}.zip"
+    filepath = join(target_path, filepath) if raw else filepath
+    with open(filepath, "wb") as f:
         f.write(await file.read())
-    logger.info(f"File saved: {file.filename} as {zip_filepath}")
-    return zip_filepath
+    logger.info(f"File saved: {file.filename} as {filepath}")
+    return filepath
 
 
 def extract_zip(zip_filepath: str, target_path: str) -> None:
@@ -168,23 +169,31 @@ def execute_cmd(cmd: str) -> None:
 async def upload_zip(
     path: str = Form(...),
     password: str = Form(...),
+    file: UploadFile = Form(...),
     precmd: Optional[str] = Form(None),
     cmd: Optional[str] = Form(None),
-    file: UploadFile = Form(...),
+    raw: Optional[str] = Form(None),
 ):
+    # read config
+    raw = config.get("ALLOW_RAW", False) and raw == "true"
+
     # logging
     logger.info(f"Upload received for path: {path}")
+    logger.info(f"Uploaded a f{'raw' if raw else 'zip'} file")
 
     # verify/validate
     verify_password(password)
-    validate_file(file)
+    validate_file(file, raw)
 
     # execute precmd
     execute_cmd(precmd)
 
+    # handle file
+    filepath = await save_upload(file, path, raw)
+
     # handle zip file
-    zip_filepath = await save_upload(file)
-    extract_zip(zip_filepath, path)
+    if not raw:
+        extract_zip(filepath, path)
 
     # execute cmd
     execute_cmd(cmd)
