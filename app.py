@@ -204,7 +204,11 @@ async def upload_zip(
 
 
 if __name__ == "__main__":
-    import uvicorn
+    from uvicorn import run
+    from sys import platform
+
+    if platform == "win32":
+        system("")
 
     bind_host = config.get("BIND_HOST", "0.0.0.0")
     bind_port = config.get("BIND_PORT", 8000)
@@ -212,4 +216,4 @@ if __name__ == "__main__":
     uvicorn_opts = config.get("UVICORN_OPTS", {})
 
     logger.info(f"Starting {run_workers} server workers on {bind_host}:{bind_port}")
-    uvicorn.run("app:app", host=bind_host, port=bind_port, workers=run_workers, **uvicorn_opts)
+    run("app:app", host=bind_host, port=bind_port, workers=run_workers, **uvicorn_opts)
