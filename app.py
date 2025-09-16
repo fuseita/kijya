@@ -66,6 +66,9 @@ async def check_ip_access(request: Request, call_next):
 
 @app.get("/", response_class=HTMLResponse)
 def index_page():
+    is_hidden_index = config.get("HIDDEN_INDEX", False)
+    if is_hidden_index:
+        raise HTTPException(404)
     return """
         <!doctype html>
         <html>
