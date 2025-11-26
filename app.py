@@ -15,7 +15,7 @@ from zipfile import ZipFile
 from fastapi import FastAPI, Form, Request, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
-from typing import Optional
+from typing import List, Optional
 
 app = FastAPI()
 
@@ -156,16 +156,17 @@ def extract_zip(zip_filepath: str, target_path: str) -> None:
     logger.info(f"Removed temporary file: {zip_filepath}")
 
 
-def execute_cmd(cmd: str) -> None:
+def execute_cmd(cmd: str) -> int:
     if not cmd:
         logger.info("No command to execute")
-        return
+        return -1
     if not is_cmd_allowed(cmd):
         logger.warning(f"Command not allowed: {cmd}")
         raise HTTPException(400, f"Command not allowed: {cmd}")
     logger.info(f"Executing command: {cmd}")
-    system(cmd)
+    signal = system(cmd)
     logger.info("Command executed")
+    return signal
 
 
 @app.post("/")
@@ -189,7 +190,7 @@ async def upload_zip(
     validate_file(file, raw)
 
     # execute precmd
-    execute_cmd(precmd)
+    precmd_signal = execute_cmd(precmd)
 
     # handle file
     filepath = await save_upload(file, path, raw)
@@ -199,11 +200,35 @@ async def upload_zip(
         extract_zip(filepath, path)
 
     # execute cmd
-    execute_cmd(cmd)
+    cmd_signal = execute_cmd(cmd)
 
     # return
-    msg = "received and command executed" if cmd else "received"
-    return JSONResponse(content={"message": msg}, status_code=200)
+    response_content = {}
+    if precmd:
+        response_content["precmd_signal"] = precmd_signal
+    if cmd:
+        response_content["cmd_signal"] = cmd_signal
+    response_content["message"] = "received and command executed" \
+        if (precmd or cmd) else "received"
+    return JSONResponse(content=response_content, status_code=200)
+
+
+@app.post("/commands")
+async def upload_commands(
+    password: str = Form(...),
+    cmds: List[str] = Form(...)
+):
+    # verify/validate
+    verify_password(password)
+
+    # execute cmd
+    cmd_signals = [execute_cmd(cmd) for cmd in cmds]
+
+    # return
+    response_content = {}
+    response_content["cmd_signals"] = cmd_signals
+    response_content["message"] = "command executed"
+    return JSONResponse(content=response_content, status_code=200)
 
 
 if __name__ == "__main__":
