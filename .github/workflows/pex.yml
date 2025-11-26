@@ -31,7 +31,7 @@ jobs:
       - name: 升級 pip / 安裝 PEX
         run: |
           python -m pip install --upgrade pip
-          pip install pex
+          pip install pex==2.55.2
 
       # 建構 PEX
       - name: 建構 PEX
