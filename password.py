@@ -1,7 +1,8 @@
+from secrets import choice
 from string import ascii_uppercase, digits
-from random import choices
 
 def random_string(n: int) -> str:
-    return ''.join(choices(ascii_uppercase + digits, k=n))
+    alphabet = ascii_uppercase + digits
+    return ''.join(choice(alphabet) for _ in range(n))
 
 print(random_string(60))
